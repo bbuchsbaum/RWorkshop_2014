@@ -1,0 +1,725 @@
+Data Analysis in R and ggplot2
+========================================================
+author: Bradley Buchsbaum
+date: 03/12/2014
+transition: rotate
+
+
+Rotman Research Institute, Baycrest
+
+
+Goals of the workshop
+========================================================
+
+- **Learn** how to get started with interactive plotting.
+
+- **Learn** how to transform and summarize data effectively.
+
+- **Learn** about different ways of visualizing data to maximize beauty *and* interpretability.
+
+
+Note: This presentation was made in RStudio
+https://www.rstudio.com/
+
+
+Why R?
+========================================================
+- **R** is an excellent tool for data manipulation and plotting.
+
+- **R** is interactive and flexible.
+
+- There are many learning resoruces available for **R**.
+
+- **R** is widely used in statistics and data science.
+
+- **R** is free
+
+- **R** can be hard, but it's worth the effort.
+
+Valuable 'R' Resources on the Web
+========================================================
+- Main R site: http://cran.r-project.org
+- Stack overflow: http://stackoverflow.com
+- Roger Peng's Coursera course on R https://www.coursera.org/course/rprog 
+- **ggplot2** homepage http://ggplot2.org/
+- **R** Graphics Cookbook,by Winston Chang
+
+![alt text](r_graphics_cookbook.jpg)
+
+
+Some Alternatives to R for Interactive Data Visualization
+========================================================
+- Python (**yhat**, **IPython**, **Bokeh**)
+- Matlab
+- javascript (**D3**, **vega**)
+- Julia (new kid on block)
+- Excel? no.
+
+Do I need to learn how to "program" for this?
+========================================================
+
+- You already know how to "program". 
+- You **do** need to learn a little *syntax*
+- You'll get enough syntax today to make nice plots in R.
+- The more you work with R, the more accustomed you'll get to the syntax.
+
+Spreadsheet programs
+========================================================
+Here is where I tell you that spreadsheets are the enemy.
+
+**Join the war against spreadsheets.**
+
+Spreadsheets are good for a budget. Neat color coding, simple tables,
+keeping track of semi-structured information (planning a wedding, "The Bachelor" betting pools, next summer's trip to Europe, etc.)
+
+If you need to use spreadsheets for data:
+- keep them tabular
+- do *not* put spaces in variable names
+- always convert to plain text whenever exchanging information with a spreadsheet hater.
+
+Getting started with R and ggplot2
+========================================================
+
+- Download **R** from CRAN 
+- (optional but recommended) Download **Rstudio**
+- install **ggplot2**
+- from R console type:
+```{r,eval=FALSE}
+install.packages("ggplot2")
+```
+- or from **RStudio** Menu Tools/Install Packages ...
+
+Getting Data in to R
+=======================================================
+
+In R, the easiest way to import data is with the function `read.table`
+
+`read.table` is a very flexible function to read tabular plain text files.
+
+- For `read.table` to work, the data must be regular. No missing cells.
+- If you have an empty cell, replace it with `NA`.
+- cells are usually separated by spaces, tabs, or commas.
+- the first row of the table is typically used for column names.
+- `read.table` will fail if not all rows have the same number of entries.
+- if you need spaces in a cell, put all values for that column in quotes.
+- if you have a repeated measures variable, prefer a single column + indicator variable for the repeated measure(s).
+
+Reading an Example Data File
+=======================================================
+First, we create an example data set.
+
+```{r}
+age <- c(25,37,23,22,18,23,44,66,91)
+height <- c(175,145,166,178,166,126,166,124,133)
+sex <- c("M", "M", "F", "F", "F", "M", "M", "F", "M")
+
+df1 <- data.frame(age=age, height=height, sex=sex)
+write.table(df1, "mydata.txt")
+read.table("mydata.txt")
+```
+
+Working with Data Frames
+=======================================================
+When you read a data file with `read.table` it *returns* an R `data.frame`
+
+**R** `data.frame`s are stuctures for storing and accessing tabular data.
+
+Note: you can also read .xlsx files with `read.xlsx` from xslx package.
+
+```{r}
+df1 <- read.table("mydata.txt", header=TRUE)
+df1$age
+df1[["age"]]
+x <- df1$age
+mean(x)
+```
+
+Making basic plots in R using the default graphics system
+=========================================================
+
+lets plot two random normally distributed variables:
+
+```{r,out.width = '400px', out.height = '400px'}
+x <- rnorm(100)
+y <- rnorm(100)
+plot(x,y)
+text(0,0, "hello", col="red", cex=5)
+points(rnorm(100), rnorm(100), col="blue")
+```
+
+Making a simple plot with ggplot2
+=========================================================
+```{r,out.width = '400px', out.height = '400px'}
+library(ggplot2)
+x <- rnorm(100)
+y <- rnorm(100)
+qplot(x,y) + labs(x="X", y="Y", title="Plot of X and Y")
+
+```
+Increasing the base font size
+=========================================================
+```{r,out.width = '400px', out.height = '400px'}
+library(ggplot2)
+theme_set(theme_grey(base_size = 24)) 
+x <- rnorm(100)
+y <- rnorm(100)
+qplot(x,y) 
+```
+
+An extended example with a real dataset
+=======================================
+
+We will be using a file called **recogmem.txt**
+
+- Data comes from a recognition memory experiment.
+- There are three main independent variables: **repnum**, **lag**, and **word_status**
+- There are two dependent variables: **correct** and *RT*
+
+```{r,out.width = '400px', out.height = '400px'}
+df1 <- read.table("recogmem.txt", header=TRUE)
+names(df1)
+```
+
+A Schematic of recognition memory study design
+=======================================
+` `
+
+![alt text](diagram.jpg)
+
+An extended example with a real dataset
+=======================================
+title: false
+
+```{r,out.width = '400px', out.height = '400px'}
+df1 <- read.table("recogmem.txt", header=TRUE)
+df1$sid[1:5]
+df1$sid <- factor(df1$sid)
+length(levels(df1$sid))
+levels(df1$word_status)
+unique(df1$lag)
+unique(df1$repnum)
+```
+
+Computing some summary stats
+=======================================
+title: false
+
+```{r,out.width = '400px', out.height = '400px'}
+### install.packages("doBy")
+library(doBy)
+dfsum <- summaryBy(RT ~ repnum, data=df1)
+dfsum
+
+
+```
+
+Computing some summary stats (mean)
+=======================================
+title: false
+
+```{r,out.width = '400px', out.height = '400px'}
+### install.packages("doBy")
+library(doBy)
+dfsum <- summaryBy(RT ~ repnum, data=df1, FUN=median)
+dfsum
+
+```
+
+Computing some summary stats (median)
+=======================================
+title: false
+
+```{r,out.width = '400px', out.height = '400px'}
+### install.packages("doBy")
+library(doBy)
+dfsum <- summaryBy(RT ~ repnum, data=df1, FUN=median)
+dfsum
+
+```
+
+Computing some summary stats (split by subjects)
+=======================================
+title: false
+
+```{r,out.width = '400px', out.height = '400px'}
+### install.packages("doBy")
+library(doBy)
+dfsum <- summaryBy(RT ~ repnum + sid, data=df1)
+dfsum
+
+```
+
+Computing some summary stats (lag and repnum)
+=======================================
+title: false
+
+```{r,out.width = '400px', out.height = '400px'}
+### install.packages("doBy")
+library(doBy)
+dfsum <- summaryBy(RT ~ repnum + lag, data=df1)
+dfsum
+
+```
+
+Computing some summary stats (lag and repnum and sid)
+=======================================
+title: false
+
+```{r,out.width = '400px', out.height = '400px'}
+### install.packages("doBy")
+library(doBy)
+dfsum <- summaryBy(RT ~ repnum + lag + sid, data=df1)
+dfsum
+
+```
+
+Computing some summary stats (lag; mean and median and sd)
+=======================================
+title: false
+
+```{r,out.width = '400px', out.height = '400px'}
+### install.packages("doBy")
+library(doBy)
+dfsum <- summaryBy(RT ~ lag, data=df1, FUN=c(mean,median,sd))
+dfsum
+```
+
+Computing some summary stats (lag; mean for accuracy and RT)
+=======================================
+title: false
+
+```{r,out.width = '400px', out.height = '400px'}
+### install.packages("doBy")
+library(doBy)
+dfsum <- summaryBy(correct + RT ~ lag, data=df1)
+dfsum
+
+```
+Lets look for oddities in the RT data
+=======================================
+```{r,out.width = '600px', out.height = '600px'}
+### histogram of RT data
+qplot(RT, data=df1)
+```
+```
+Lets look for oddities in the RT data
+=======================================
+```{r,out.width = '1000px', out.height = '400px'}
+### for presentation, we take a subset of the data.
+df2 <- df1 [1:(700*5),]
+theme_set(theme_grey(base_size = 12)) 
+### here we plot RT split by subject id.
+qplot(RT/1000, facets = . ~ sid, data=df2)
+```
+
+Lets look for oddities in the RT data
+=======================================
+```{r,out.width = '1000px', out.height = '400px'}
+### some advanced usage....
+### for every subject count number of RTs greater than 4000 ms.
+### first we split RT by sid
+dfsplit <- split(df1$RT, df1$sid)
+
+## then we apply the 'sum' function to every subject's set of RTs
+lapply(dfsplit, function(RT) sum(RT > 4000))
+
+```
+
+Lets clean up the RT data
+=======================================
+```{r,out.width = '1000px', out.height = '400px'}
+
+meanRT <- mean(df1$RT)
+sdRT <- sd(df1$RT)
+
+zscore <- (df1$RT - meanRT)/sdRT
+## count number of RTs 3 sds or more away from mean
+## (see package 'outliers' for more sophisticated methods of screening outliers.)
+sum(abs(zscore) > 3)
+
+df2 <- subset(df1, abs(zscore) < 3)
+write.table(df2, "recogmem_clean.txt", row.names=FALSE)
+```
+
+Lets plot RT by LAG
+=======================================
+```{r,out.width = '1000px', out.height = '400px'}
+
+df2 <- read.table("recogmem_clean.txt", header=TRUE)
+qplot(lag, RT, data=df2)
+```
+
+Lets plot RT by LAG (removing lag=0)
+=======================================
+```{r,out.width = '1000px', out.height = '400px'}
+
+df2 <- read.table("recogmem_clean.txt", header=TRUE)
+qplot(lag, RT, data=subset(df2, lag != 0))
+```
+Still have some outliers!
+=======================================
+```{r,out.width = '1000px', out.height = '400px'}
+
+df3 <- subset(df2, RT > 500)
+qplot(lag, RT, data=subset(df3, lag != 0))
+write.table(df3, "recogmem_clean.txt", row.names=FALSE)
+```
+
+How about a boxplot on subj means
+=======================================
+```{r,out.width = '600px', out.height = '400px'}
+
+df3 <- read.table("recogmem_clean.txt", header=TRUE)
+
+df4 <- summaryBy(RT ~ lag + sid, data=df3, keep.names=TRUE)
+
+qplot(factor(lag), RT, geom="boxplot", data=subset(df4, lag != 0))
+
+```
+
+
+How about a linear fit
+=======================================
+```{r,out.width = '1000px', out.height = '400px'}
+df3 <- read.table("recogmem_clean.txt", header=TRUE)
+qplot(lag, RT, geom=c("point", "smooth"), method=lm, data=subset(df3, lag != 0))
+
+```
+
+Lets add a quadratic fit
+=======================================
+```{r,out.width = '1000px', out.height = '400px'}
+df3 <- read.table("recogmem_clean.txt", header=TRUE)
+qplot(lag, RT, geom=c("point", "smooth"), method=lm, formula = y ~ poly(x,2), data=subset(df3, lag != 0))
+
+```
+
+Lets add a cubic term fit
+=======================================
+```{r,out.width = '1000px', out.height = '400px'}
+df3 <- read.table("recogmem_clean.txt", header=TRUE)
+qplot(lag, RT, geom=c("point", "smooth"), method=lm, formula = y ~ poly(x,3), data=subset(df3, lag != 0))
+
+```
+
+Lets plot smooth fits for all subjects at once
+=======================================
+```{r,out.width = '1000px', out.height = '400px'}
+
+df4 <- summaryBy(RT ~ lag + sid, data=df3, keep.names=TRUE)
+df4$sid <- factor(df4$sid)
+qplot(lag, RT, geom=c("point", "smooth"), colour=sid, method=lm, formula = y ~ poly(x,3), data=subset(df4, lag != 0))
+
+```
+
+Lets remove the error shading
+=======================================
+```{r,out.width = '600px', out.height = '400px'}
+
+df4 <- summaryBy(RT ~ lag + sid, data=df3, keep.names=TRUE)
+df4$sid <- factor(df4$sid)
+qplot(lag, RT, geom=c("point", "smooth"), colour=sid, se=FALSE, method=lm, formula = y ~ poly(x,3), data=subset(df4, lag != 0))
+
+```
+
+Lets plot lag for each word type
+=======================================
+```{r,out.width = '600px', out.height = '400px'}
+
+df4 <- summaryBy(RT ~ lag + word_status, data=df3, keep.names=TRUE)
+qplot(lag, RT, geom=c("point", "smooth"), facets = . ~ word_status, se=FALSE, method=lm, formula = y ~ poly(x,3), data=subset(df4, lag != 0))
+
+```
+
+Lets plot lag and indicate word_status by shape
+=======================================
+```{r,out.width = '600px', out.height = '400px'}
+
+df4 <- summaryBy(RT ~ lag + word_status, data=df3, keep.names=TRUE)
+
+qplot(lag, RT, geom=c("point", "smooth"), shape=word_status, se=FALSE, method=lm, formula = y ~ poly(x,3), data=subset(df4, lag != 0))
+
+```
+
+
+Lets plot lag for each level of repetition and word type
+=======================================
+```{r,out.width = '600px', out.height = '400px'}
+
+df4 <- summaryBy(RT ~ lag + word_status + repnum, data=df3, keep.names=TRUE)
+df4$repnum <- factor(df4$repnum)
+
+qplot(lag, RT, geom=c("point", "smooth"), colour=repnum, facets = . ~ word_status, se=FALSE, method=lm, formula = y ~ poly(x,3), data=subset(df4, lag != 0))
+
+```
+Lets plot repetition for each level of lag and word type
+=======================================
+```{r,out.width = '600px', out.height = '400px'}
+
+df4 <- summaryBy(RT ~ lag + word_status + repnum, data=df3, keep.names=TRUE)
+df4$lag <- factor(df4$lag)
+
+qplot(repnum, RT, geom=c("point", "smooth"), colour=lag, facets = . ~ word_status, se=FALSE, method=lm, formula = y ~ poly(x,3), data=subset(df4, lag != 0))
+
+```
+
+Lets go back to a linear fit
+=======================================
+```{r,out.width = '600px', out.height = '400px'}
+
+df4 <- summaryBy(RT ~ lag + word_status + repnum, data=df3, keep.names=TRUE)
+df4$lag <- factor(df4$lag)
+
+qplot(repnum, RT, geom=c("point", "smooth"), colour=lag, facets = . ~ word_status, se=FALSE, method=lm, data=subset(df4, lag != 0))
+
+```
+
+
+Lets try another way of visualizing this data: a "bubble plot" of the RT ranks
+=======================================
+```{r,out.width = '600px', out.height = '400px'}
+df3 <- subset(df3, lag != 0)
+df4 <- summaryBy(RT ~ lag + repnum, data=df3, keep.names=TRUE)
+df4$RTrank <- rank(df4$RT); df4$lag <- factor(df4$lag); df4$repnum <- factor(df4$repnum-1)
+
+p <- ggplot(df4, aes(x=lag, y=repnum)) + geom_tile(fill="white") 
+
+p + geom_point(data=df4, aes(x=lag, y=repnum, colour=RTrank, size=RTrank))
+```
+
+Lets scale the bubbles
+=======================================
+title: false
+```{r,out.width = '600px', out.height = '400px'}
+df3 <- subset(df3, lag != 0)
+df4 <- summaryBy(RT ~ lag + repnum, data=df3, keep.names=TRUE)
+df4$RTrank <- rank(df4$RT); df4$lag <- factor(df4$lag); df4$repnum <- factor(df4$repnum-1)
+
+p <- ggplot(df4, aes(x=lag, y=repnum)) + geom_tile(fill="white") 
+
+p + geom_point(data=df4, aes(x=lag, y=repnum, colour=RTrank, size=RTrank)) +
+  scale_size(name="RT rank", range=c(4,18))
+```
+
+How about a "heat map"" of the accuracy data?
+=======================================
+```{r,out.width = '600px', out.height = '500px'}
+
+## see http://learnr.wordpress.com/2010/01/26/ggplot2-quick-heatmap-plotting/
+df3 <- subset(df3, lag != 0)
+df4 <- summaryBy(correct ~ lag + repnum, data=df3, keep.names=TRUE)
+
+qplot(lag, repnum, geom="tile", fill=correct, data=df4)
+
+
+```
+
+How about a "heat map"" of the accuracy data?
+=======================================
+```{r,out.width = '600px', out.height = '500px'}
+df3 <- subset(df3, lag != 0)
+df4 <- summaryBy(correct ~ lag + repnum, data=df3, keep.names=TRUE)
+
+qplot(factor(lag), factor(repnum), geom="tile", fill=correct, data=df4)
+
+
+```
+
+How about a "heat map"" of the accuracy data?
+=======================================
+```{r,out.width = '600px', out.height = '500px'}
+df3 <- subset(df3, lag != 0)
+df4 <- summaryBy(correct ~ lag + repnum, data=df3, keep.names=TRUE)
+
+qplot(factor(lag), factor(repnum), geom="tile", fill=correct, data=df4) +
+  scale_fill_gradient(low = "green", high = "red")
+
+
+```
+
+Remove the gray exterior
+=======================================
+```{r,out.width = '600px', out.height = '500px'}
+df3 <- subset(df3, lag != 0)
+df4 <- summaryBy(correct ~ lag + repnum, data=df3, keep.names=TRUE)
+
+qplot(factor(lag), factor(repnum), geom="tile", fill=correct, data=df4) +
+  scale_fill_gradient(low = "green", high = "red") +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0))
+
+```
+
+Plotting a correlation matrix
+======================================
+Make use of the excellent "corrplot" package
+
+First we need to install it:
+
+`install.packages(corrplot)`
+
+
+Lets generate some random data and then create correlation matrix
+======================================
+```{r,out.width = '600px', out.height = '500px'}
+## this makes a 8 by 8 matrix with random data
+mat <- matrix(rnorm(8*8), 8, 8)
+cmat <- cor(mat)
+cmat
+
+```
+
+Lets generate some random data and then create correlation matrix
+======================================
+title: false
+```{r,out.width = '600px', out.height = '500px'}
+## this makes a 8 by 8 matrix with random data
+library(corrplot)
+mat <- matrix(rnorm(8*8), 8, 8)
+cmat <- cor(mat)
+corrplot(cmat)
+
+```
+
+Show only lower diagonal
+======================================
+title: false
+```{r,out.width = '600px', out.height = '500px'}
+## this makes a 8 by 8 matrix with random data
+library(corrplot)
+mat <- matrix(rnorm(8*8), 8, 8)
+cmat <- cor(mat)
+## help(corrplot)
+corrplot(cmat, type="lower")
+
+```
+
+Show numbers
+======================================
+```{r,out.width = '600px', out.height = '500px'}
+## this makes a 8 by 8 matrix with random data
+library(corrplot)
+mat <- matrix(rnorm(8*8), 8, 8)
+cmat <- cor(mat)
+## help(corrplot)
+corrplot(cmat, type="lower", method="number", diag=FALSE)
+
+```
+
+Show numbers and ellipses
+======================================
+```{r,out.width = '600px', out.height = '500px'}
+## this makes a 8 by 8 matrix with random data
+library(corrplot)
+mat <- matrix(rnorm(8*8), 8, 8)
+cmat <- cor(mat)
+## help(corrplot)
+corrplot(cmat, type="lower", method="ellipse", diag=FALSE, addCoef.col="black")
+
+```
+
+Show numbers and ellipses, order item by first principal component
+======================================
+```{r,out.width = '600px', out.height = '500px'}
+## this makes a 8 by 8 matrix with random data
+library(corrplot)
+mat <- matrix(rnorm(8*8), 8, 8)
+cmat <- cor(mat)
+## help(corrplot)
+corrplot(cmat, type="lower", order="FPC", method="ellipse", diag=FALSE, addCoef.col="black")
+
+```
+
+A "Spider Plot" of data from Brain ROI atlas
+======================================
+```{r,out.width = '600px', out.height = '500px'}
+df5 <- read.table("ROI_DATA.txt", header=TRUE)
+names(df5)
+table(df5$Lobe)
+df5[1,]
+#p <- ggplot(df5, aes(x=factor(ROI),y=rv,fill=Lobe))
+```
+
+A "Spider Plot" of data from Brain ROI atlas
+======================================
+```{r,out.width = '600px', out.height = '500px'}
+df5 <- read.table("ROI_DATA.txt", header=TRUE)
+
+p <- ggplot(df5, aes(x=factor(ROI),y=rv,fill=Lobe)) + geom_bar(width=1)
+p
+```
+
+A "Spider Plot" of data from Brain ROI atlas
+======================================
+```{r,out.width = '600px', out.height = '500px'}
+df5 <- read.table("ROI_DATA.txt", header=TRUE)
+
+p <- ggplot(df5, aes(x=factor(ROI),y=rv,fill=Lobe)) + geom_bar(width=1)
+p + coord_polar()
+```
+
+A "Spider Plot" of data from Brain ROI atlas
+======================================
+```{r,out.width = '600px', out.height = '500px'}
+df5 <- read.table("ROI_DATA.txt", header=TRUE)
+
+p <- ggplot(df5, aes(x=factor(ROI),y=rv,fill=Lobe)) + geom_bar(width=1)
+p + coord_polar() 
+```
+
+A "Spider Plot" of data from Brain ROI atlas
+======================================
+```{r,out.width = '600px', out.height = '500px'}
+df5 <- read.table("ROI_DATA.txt", header=TRUE)
+
+p <- ggplot(df5, aes(x=factor(Name),y=rv,fill=rv)) + geom_bar(width=1)
+
+p + coord_polar() 
+
+## exercise for reader: rotate labels
+## see http://stackoverflow.com/questions/7830022/rotate-x-axis-text-in-ggplot2-when-using-coord-polar
+```
+
+A "Spider Plot" of data from Brain ROI atlas
+======================================
+```{r,out.width = '600px', out.height = '500px'}
+df5 <- read.table("ROI_DATA.txt", header=TRUE)
+
+p <- ggplot(df5, aes(x=factor(Name),y=rv,fill=rv)) + geom_bar(width=1)
+p + coord_polar() + theme(axis.text.x  = element_blank())
+
+## exercise for reader: rotate labels
+## see http://stackoverflow.com/questions/7830022/rotate-x-axis-text-in-ggplot2-when-using-coord-polar
+```
+
+
+Saving "Spider Plot" as pdf
+======================================
+```{r,out.width = '600px', out.height = '500px'}
+df5 <- read.table("ROI_DATA.txt", header=TRUE)
+
+p <- ggplot(df5, aes(x=factor(ROI),y=rv,fill=Lobe)) + geom_bar(width=1)
+p + coord_polar() 
+ggsave("roiplot.pdf", width=8, height=8)
+```
+
+The End
+======================================
+
+- We've learned enough to get started with R plotting
+- Key take home message: fast, interactive plotting is useful.
+- **ggplot2** allows both interactive plotting and creation of publication quality graphs.
+- The latter requires more work, but *many* resoures and examples online.
+```
+
+
+
+
+
+
+
+
+
+
+
+
