@@ -21,6 +21,21 @@ Goals of the workshop
 Note: This presentation was made in RStudio
 https://www.rstudio.com/
 
+Getting data, plots, code
+========================================================
+
+All data, code, and plots are stored on **Github**
+
+see: https://github.com/bbuchsbaum/RWorkshop_2014
+
+to download the full repository, you need 'git'
+
+> git clone https://github.com/bbuchsbaum/RWorkshop_2014
+
+
+
+
+
 
 Why R?
 ========================================================
